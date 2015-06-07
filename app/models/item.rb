@@ -5,4 +5,7 @@ class Item < ActiveRecord::Base
     update_attribute :is_complete, true
   end
 
+  def do_by due_date
+    update due_date: due_date
+  end
 end

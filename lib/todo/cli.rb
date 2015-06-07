@@ -30,9 +30,14 @@ module Todo
         puts
         puts list.name
         puts "-" * list.name.length
-        list.items.each do |item|
+        list.items.each do |item| 
           done = item.is_complete ? '√' : ' '
-          puts "[#{done}] #{item.id} #{item.task}"
+          unless list_name.blank?
+            puts "[#{done}] #{item.id} #{item.task}"
+            due = item.due_date?
+            puts item.due_date
+          
+          end
         end
       end
     end
@@ -43,6 +48,39 @@ module Todo
       puts "Task: #{item.task} is done... Bam!!"
     end
 
+    def self.due (item_id, time)
+      item = Item.find(item_id)
+      time = item.update_attributes :due_date => time
+      puts "#{item.due_date}"
+    end
+
+    def self.next_item
+      items = Item.all.reject{ |item| item.is_complete }
+      if items.include? :due_date
+        items = items.keep_if { |item| item.due_date? }
+        @item = items.shuffle.shift
+        puts "#{item.id} #{item.task} #{item.due_date}"
+      else
+        item = items.shuffle.shift
+        puts "#{item.id} #{item.task}"
+      end
+    end
+
+    def self.search(word)
+      items = Item.all
+      search = items.select do |item|
+        item.task.include?(word)
+      end
+      unless search == []
+        search.each do |item|
+          done = item.is_complete ? '√' : ' '
+          puts "[#{done}] #{item.id} #{item.task} #{item.due_date}"
+        end
+      else
+        puts "This search did not match your word."
+      end
+    end
+
     def self.run
       case ARGV[0]
         when "add"
@@ -50,10 +88,19 @@ module Todo
 
         when "list"
           list(ARGV[1])
+        
+        when "due"
+          due(ARGV[1..-1])
 
         when "done"
-          done(ARGV[1])    
+          done(ARGV[1]) 
+
+        when "next"
+          next_item()   
+        
+        when "search"
+          search(ARGV[1])
         end
       end
-    end
+    end  
 end
